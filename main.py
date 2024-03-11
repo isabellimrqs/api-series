@@ -90,12 +90,6 @@ async def post_serie(serie: Optional[Serie] = None):
         del serie.id
         return serie
     
-@app.delete("/serie/{id_serie}")
-async def del_serie(id_serie: int, serie: Serie):
-    if id_serie in series:
-        del series[id_serie]
-        return {"Deletada a série {id_serie}"}
-    
 @app.put('/serie/{id_serie}')
 async def put_serie(id_serie: int, serie: Serie):
     if id_serie in series:
@@ -105,15 +99,23 @@ async def put_serie(id_serie: int, serie: Serie):
     else:
         return{"Erro": "Não existe uma série com esse ID"}
     
-@app.patch("/serie/{id_serie}")
-async def patch_serie(id_serie: int, serie: Serie):
-    stored_item_data = series[id_serie]
-    stored_item_model = Serie(**stored_item_data)
-    update_data = serie.dict(exclude_unset=True)
-    updated_item = stored_item_model.model_copy(update=update_data)
-    series[id_serie] = jsonable_encoder(updated_item)
-    return updated_item
+@app.delete("/serie/{id_serie}")
+async def del_serie(id_serie: int, serie: Serie):
+    if id_serie in series:
+        del series[id_serie]
+        return {f"Deletada a série {id_serie}"}
     
+@app.patch('/serie/{id_serie}')
+async def patch_serie(id_serie : int, serie: Serie):
+    if id_serie in series:
+        stored_serie_data = series[id_serie]
+        stored_serie_model = Serie(**stored_serie_data)
+        del stored_serie_model.id
+        update_serie = serie.model_dump(exclude_unset=True)
+        updated_serie = stored_serie_model.model_copy(update=update_serie)
+        return updated_serie
+    else:
+        raise HTTPException(status_code=409)
     
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    uvicorn.run(app, host="10.234.94.9", port=8000)
